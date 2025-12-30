@@ -1,0 +1,1 @@
+python3 -m areal.launcher.local examples/math/gsm8k_rl.py --config examples/math/gsm8k_grpo.yaml experiment_name=test_single_node trial_name=math_01

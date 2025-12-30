@@ -122,13 +122,15 @@ class SGLangServerWrapper:
         launch_server_args = []
         server_addresses = []
         base_random_seed = self.config.random_seed
-        for server_local_idx in range(
-            server_idx_offset, server_idx_offset + n_servers_per_proc
-        ):
+        # Use local index (0-based) for port calculation to avoid overflow with high GPU indices
+        for local_idx in range(n_servers_per_proc):
+            server_local_idx = server_idx_offset + local_idx
+            # Port calculation uses local_idx (0, 1, 2...) not absolute GPU index (e.g., 6, 7)
             port_range = (
-                server_local_idx * ports_per_server + 10000,
-                (server_local_idx + 1) * ports_per_server + 10000,
+                local_idx * ports_per_server + 10000,
+                (local_idx + 1) * ports_per_server + 10000,
             )
+            logger.info(f"GPU index {server_local_idx}, local_idx {local_idx}, port_range: {port_range}")
             server_port, dist_init_port = find_free_ports(2, port_range)
 
             if cross_nodes:
@@ -140,7 +142,7 @@ class SGLangServerWrapper:
 
             host_ip = gethostip()
 
-            base_gpu_id = (server_local_idx - server_idx_offset) * gpus_per_server
+            base_gpu_id = local_idx * gpus_per_server
             config = deepcopy(self.config)
             config.random_seed = base_random_seed + server_local_idx
             cmd = SGLangConfig.build_cmd(
@@ -218,7 +220,13 @@ def launch_sglang_server(argv):
 def main(argv):
     try:
         launch_sglang_server(argv)
+    except Exception as e:
+        logger.error(f"SGLang server failed with exception: {type(e).__name__}: {e}")
+        import traceback
+        logger.error(f"Traceback:\n{traceback.format_exc()}")
+        raise
     finally:
+        logger.info(f"sglang_server is being killed: PID {os.getpid()}")
         kill_process_tree(os.getpid(), graceful=True)
 
 
