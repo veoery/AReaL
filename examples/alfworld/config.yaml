@@ -1,4 +1,4 @@
-experiment_name: os-interaction
+experiment_name: alfworld
 trial_name: trial0
 
 seed: 1
@@ -6,18 +6,15 @@ enable_offload: false
 total_train_epochs: 10
 tokenizer_path: ${actor.path}
 
-# Task server configuration
-# task_server_url: http://localhost:5000
-
 cluster:
   n_nodes: 1
-  n_gpus_per_node: 4
+  n_gpus_per_node: 8
   fileroot: /home/haizhonz/yizhuod/tmp/areal/experiments
   name_resolve:
     type: nfs
     nfs_record_root: /home/haizhonz/yizhuod/tmp/areal/name_resolve
 
-allocation_mode: sglang:d2p1t1+d2p1t1
+allocation_mode: sglang:d6p1t1+d2p1t1
 
 rollout:
   experiment_name: ${experiment_name}
@@ -31,7 +28,7 @@ rollout:
 gconfig:
   n_samples: 4  # Collect 4 trajectories per sample for diversity
   min_new_tokens: 0
-  max_new_tokens: 512  # OS task needs longer responses for bash commands
+  max_new_tokens: 256  # AlfWorld actions are shorter than OS commands
   greedy: false
   temperature: 1.0
   top_p: 0.95
@@ -40,13 +37,13 @@ gconfig:
 actor:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  path: Qwen/Qwen2.5-1.5B-Instruct
+  path: Qwen/Qwen3-1.7B
   init_from_scratch: false
   disable_dropout: true
   gradient_checkpointing: false
   dtype: bfloat16
   mb_spec:
-    max_tokens_per_mb: 8192  # Increased for longer OS task conversations (system prompt + examples + multi-turn)
+    max_tokens_per_mb: 8192  # AlfWorld has multi-turn conversations with examples
   optimizer:
     type: adam
     lr: 1.0e-5  # Lower LR for stability
@@ -112,15 +109,15 @@ train_dataset:
   batch_size: 8  # Smaller batch for longer sequences
   pin_memory: true
   num_workers: 4
-  path: examples/os_interaction/data/train_indices.jsonl
+  path: examples/alfworld/data/train_indices.jsonl
   type: rl
-  max_length: 2048  # OS task has longer multi-turn conversations
+  max_length: 2048  # AlfWorld has multi-turn conversations
 
 valid_dataset:
   batch_size: 8
   pin_memory: true
   num_workers: 4
-  path: examples/os_interaction/data/valid_indices.jsonl
+  path: examples/alfworld/data/valid_indices.jsonl
   type: rl
 
 # Utilities
@@ -155,10 +152,8 @@ stats_logger:
   fileroot: ${cluster.fileroot}
   wandb:
     mode: online  # Enable with "online" to use wandb
-    project: os-interaction-rl
+    project: alfworld-rl
     entity: yizhuod-cmu
-    # api_key: your-api-key-here 
-    # base_url: https://your-wandb-instance.com 
 
 launcher:
   inference_server_cpus_per_gpu: 4

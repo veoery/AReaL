@@ -315,10 +315,12 @@ class TaskServerWorkflow(RolloutWorkflow):
                     break
 
                 # a. Convert messages to input_ids
+                # enable_thinking=False disables Qwen3's thinking mode
                 input_ids = self.tokenizer.apply_chat_template(
                     messages,
                     add_generation_prompt=True,
                     tokenize=True,
+                    enable_thinking=False,
                 )
 
                 # b. Generate action with AReaL engine
@@ -351,9 +353,9 @@ class TaskServerWorkflow(RolloutWorkflow):
                 action = self.format_agent_output_to_action(agent_output, info)
 
                 # f. Send action to server
-                # logger.info(f"Running turn {turn + 1} / {self.max_turns}")
+                logger.info(f"Running turn {turn + 1} / {self.max_turns}")
                 # logger.info(f"messages: {messages}")
-                # logger.info(f"action: {action}")
+                logger.info(f"action: {action}")
                 step_response = await self._call_server(
                     "api/episode/step",
                     data={"episode_id": episode_id, "action": action},
