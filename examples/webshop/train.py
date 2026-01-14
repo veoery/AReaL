@@ -1,22 +1,22 @@
 """
-AlfWorld Task Training with AReaL
+Webshop Task Training with AReaL
 
-This script trains a language model on the AlfWorld household task using
+This script trains a language model on the Webshop household task using
 reinforcement learning via AReaL's PPO implementation.
 
-The task server (AgentBench AlfWorld task) runs independently, and AReaL
+The task server (AgentBench Webshop task) runs independently, and AReaL
 connects to it via HTTP to collect trajectories for training.
 
 Usage:
     # 1. Start task servers (in separate terminals)
     cd AgentBench
-    python -m src.server.task_server_adapter alfworld-std --port 5000 --config "configs/tasks/alfworld.yaml" > std.log 2>&1 &
+    python -m src.server.task_server_adapter webshop-dev --port 5000 --config "configs/tasks/webshop.yaml" > std.log 2>&1 &
 
     # 2. Start training (in another terminal)
     cd AReaL
-    python -m areal.launcher.local examples/alfworld/train.py \
-        --config examples/alfworld/config.yaml \
-        experiment_name=alfworld_rl \
+    python -m areal.launcher.local examples/webshop/train.py \
+        --config examples/webshop/config.yaml \
+        experiment_name=webshop_rl \
         trial_name=run1
 """
 
@@ -30,14 +30,9 @@ from areal.utils.hf_utils import load_hf_tokenizer
 from areal.workflow.task_server import TaskServerWorkflow
 
 
-class AlfWorldWorkflow(TaskServerWorkflow):
+class WebshopWorkflow(TaskServerWorkflow):
     """
-    Custom workflow for AlfWorld task.
-
-    Handles AlfWorld-specific requirements:
-    - Converts string indices to integers (AlfWorld uses numeric indices)
-    - Applies negative rewards for failures
-    - Applies turn discount
+    Custom workflow for Webshop task.
     """
 
     def __init__(self, *args, failure_penalty: float = -0.1, **kwargs):
@@ -53,16 +48,12 @@ class AlfWorldWorkflow(TaskServerWorkflow):
 
     async def _call_server(self, endpoint: str, method: str = "POST", data: Dict[str, Any] = None):
         """
-        Override to convert sample_id to integer for AlfWorld.
-
-        AlfWorld uses numeric indices (0, 1, 2, ...) not string indices.
-        The parent class converts all sample_ids to strings, but AlfWorld
-        expects integers in its start_sample() method.
+        Override to convert sample_id to integer for Webshop.
         """
         # Convert sample_id from string to int if present
         if data and "sample_id" in data:
             try:
-                # AlfWorld expects integer indices
+                # Webshop expects integer indices
                 data = data.copy()  # Don't modify original
                 data["sample_id"] = int(data["sample_id"])
             except (ValueError, TypeError):
@@ -100,7 +91,7 @@ def main(args):
     tokenizer = load_hf_tokenizer(config.tokenizer_path)
 
     # Load datasets
-    # For AlfWorld task, dataset just needs to return sample IDs
+    # For Webshop task, dataset just needs to return sample IDs
     train_dataset = get_custom_dataset(
         split="train",
         dataset_config=config.train_dataset,
@@ -120,22 +111,22 @@ def main(args):
         valid_dataset=valid_dataset,
     ) as trainer:
         # Create workflow that connects to task servers
-        train_task_server_url = "http://localhost:5000"  # alfworld-std (standard split)
-        eval_task_server_url = "http://localhost:5001"   # alfworld-dev (dev split)
+        train_task_server_url = "http://localhost:5000"  # webshop-std (standard split)
+        eval_task_server_url = "http://localhost:5001"   # webshop-dev (dev split)
 
-        workflow = AlfWorldWorkflow(
+        workflow = WebshopWorkflow(
             task_server_url=train_task_server_url,
             gconfig=config.gconfig,
             tokenizer=trainer.tokenizer,
-            max_turns=10,  # AlfWorld uses 35 max steps
+            max_turns=10,  # Webshop uses 35 max steps
             turn_discount=0.95,  # Penalize taking more turns
             failure_penalty=-0.1,  # Negative reward for failures (vs +1.0 for success)
             rollout_stat_scope="rollout",
-            timeout=300.0,  # AlfWorld tasks need time (5 minutes per request)
+            timeout=300.0,  # Webshop tasks need time (5 minutes per request)
         )
 
         # Eval workflow (different server for dev set)
-        eval_workflow = AlfWorldWorkflow(
+        eval_workflow = WebshopWorkflow(
             task_server_url=eval_task_server_url,
             gconfig=config.gconfig.new(temperature=0.6),
             tokenizer=trainer.tokenizer,
