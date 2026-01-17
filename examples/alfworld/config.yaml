@@ -8,7 +8,7 @@ tokenizer_path: ${actor.path}
 
 cluster:
   n_nodes: 1
-  n_gpus_per_node: 8
+  n_gpus_per_node: 10
   fileroot: /home/haizhonz/yizhuod/tmp/areal/experiments
   name_resolve:
     type: nfs
@@ -19,7 +19,7 @@ allocation_mode: sglang:d1p1t4+d1p1t4
 rollout:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  max_concurrent_rollouts: 1
+  max_concurrent_rollouts: 16
   queue_size: null
   consumer_batch_size: ${train_dataset.batch_size}
   max_head_offpolicyness: 2
@@ -43,7 +43,7 @@ actor:
   gradient_checkpointing: false
   dtype: bfloat16
   mb_spec:
-    max_tokens_per_mb: 8192  # AlfWorld has multi-turn conversations with examples
+    max_tokens_per_mb: 16384  # AlfWorld has multi-turn conversations with examples
   optimizer:
     type: adam
     lr: 1.0e-5  # Lower LR for stability

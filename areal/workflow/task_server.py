@@ -335,6 +335,7 @@ class TaskServerWorkflow(RolloutWorkflow):
 
                 # c. Decode agent output
                 agent_output = self.tokenizer.decode(resp.output_tokens)
+                # agent_output+="TESTTESTTESTTEST"
 
                 # d. Track trajectory (token-level data for RL)
                 trajectory_steps.append(
@@ -351,6 +352,7 @@ class TaskServerWorkflow(RolloutWorkflow):
 
                 # e. Format action for server
                 action = self.format_agent_output_to_action(agent_output, info)
+                # action = {'type': 'text', 'content': 'ACTION: put soapbottle 1 in/on toilet 1<|im_end|>'}
 
                 # f. Send action to server
                 logger.info(f"Running turn {turn + 1} / {self.max_turns}")
