@@ -5,7 +5,7 @@ This dataset loader provides task indices for the AlfWorld task,
 which runs via an external task server (AgentBench).
 
 The dataset format is simple JSONL with task indices:
-    {"index": "std-00000", "messages": []}
+    {"index": 0, "messages": []}
 
 The actual task descriptions and execution are handled by the task server.
 This keeps the task environment separate from the RL training framework.

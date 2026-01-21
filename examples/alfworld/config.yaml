@@ -8,13 +8,13 @@ tokenizer_path: ${actor.path}
 
 cluster:
   n_nodes: 1
-  n_gpus_per_node: 10
+  n_gpus_per_node: 6
   fileroot: /home/haizhonz/yizhuod/tmp/areal/experiments
   name_resolve:
     type: nfs
     nfs_record_root: /home/haizhonz/yizhuod/tmp/areal/name_resolve
 
-allocation_mode: sglang:d1p1t4+d1p1t4
+allocation_mode: sglang:d1p1t2+d1p1t4
 
 rollout:
   experiment_name: ${experiment_name}
@@ -37,7 +37,7 @@ gconfig:
 actor:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  path: Qwen/Qwen3-4B-Instruct-2507
+  path: Qwen/Qwen3-1.7B
   init_from_scratch: false
   disable_dropout: true
   gradient_checkpointing: false

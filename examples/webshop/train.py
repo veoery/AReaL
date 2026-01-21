@@ -118,9 +118,9 @@ def main(args):
             task_server_url=train_task_server_url,
             gconfig=config.gconfig,
             tokenizer=trainer.tokenizer,
-            max_turns=10,  # Webshop uses 35 max steps
+            max_turns=8,
             turn_discount=0.95,  # Penalize taking more turns
-            failure_penalty=-0.1,  # Negative reward for failures (vs +1.0 for success)
+            failure_penalty=0,  # Negative reward for failures (vs +1.0 for success)
             rollout_stat_scope="rollout",
             timeout=300.0,  # Webshop tasks need time (5 minutes per request)
         )
@@ -130,9 +130,9 @@ def main(args):
             task_server_url=eval_task_server_url,
             gconfig=config.gconfig.new(temperature=0.6),
             tokenizer=trainer.tokenizer,
-            max_turns=10,
+            max_turns=8,
             turn_discount=0.95,
-            failure_penalty=-0.1,  # Same penalty for consistency
+            failure_penalty=0,  # Same penalty for consistency
             rollout_stat_scope="eval-rollout",
             timeout=300.0,
         )

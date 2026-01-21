@@ -124,6 +124,16 @@ def _get_custom_dataset(
             max_length=max_length,
             **kwargs,
         )
+    elif "webshop" in path and type == "rl":
+        from .webshop import get_webshop_rl_dataset
+
+        return get_webshop_rl_dataset(
+            path=path,
+            split=split,
+            tokenizer=tokenizer,
+            max_length=max_length,
+            **kwargs,
+        )
     else:
         raise ValueError(
             f"Dataset {path} with split {split} and training type {type} is not supported. "

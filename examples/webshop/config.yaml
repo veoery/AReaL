@@ -8,18 +8,18 @@ tokenizer_path: ${actor.path}
 
 cluster:
   n_nodes: 1
-  n_gpus_per_node: 2
+  n_gpus_per_node: 8
   fileroot: /home/haizhonz/yizhuod/tmp/areal/experiments
   name_resolve:
     type: nfs
     nfs_record_root: /home/haizhonz/yizhuod/tmp/areal/name_resolve
 
-allocation_mode: sglang:d1p1t1+d1p1t1
+allocation_mode: sglang:d1p1t4+d1p1t4
 
 rollout:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  max_concurrent_rollouts: 1
+  max_concurrent_rollouts: 8
   queue_size: null
   consumer_batch_size: ${train_dataset.batch_size}
   max_head_offpolicyness: 2
@@ -28,7 +28,7 @@ rollout:
 gconfig:
   n_samples: 4  # Collect 4 trajectories per sample for diversity
   min_new_tokens: 0
-  max_new_tokens: 256  # AlfWorld actions are shorter than OS commands
+  max_new_tokens: 2048
   greedy: false
   temperature: 1.0
   top_p: 0.95
@@ -37,13 +37,13 @@ gconfig:
 actor:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  path: Qwen/Qwen3-1.7B
+  path: Qwen/Qwen3-4B-Instruct-2507
   init_from_scratch: false
   disable_dropout: true
   gradient_checkpointing: false
   dtype: bfloat16
   mb_spec:
-    max_tokens_per_mb: 8192  # AlfWorld has multi-turn conversations with examples
+    max_tokens_per_mb: 16384
   optimizer:
     type: adam
     lr: 1.0e-5  # Lower LR for stability
@@ -109,15 +109,15 @@ train_dataset:
   batch_size: 8  # Smaller batch for longer sequences
   pin_memory: true
   num_workers: 4
-  path: examples/alfworld/data/train_indices.jsonl
+  path: examples/webshop/data/train_indices.jsonl
   type: rl
-  max_length: 2048  # AlfWorld has multi-turn conversations
+  max_length: 2048
 
 valid_dataset:
   batch_size: 8
   pin_memory: true
   num_workers: 4
-  path: examples/alfworld/data/valid_indices.jsonl
+  path: examples/webshop/data/valid_indices.jsonl
   type: rl
 
 # Utilities
@@ -152,7 +152,7 @@ stats_logger:
   fileroot: ${cluster.fileroot}
   wandb:
     mode: online  # Enable with "online" to use wandb
-    project: alfworld-rl
+    project: webshop-rl
     entity: yizhuod-cmu
 
 launcher:
